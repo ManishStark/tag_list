@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import apiClient from "../services/apiClient";
 
 const schema = z.object({
   email: z.string().email({ message: "Please enter a valid email.." }),
@@ -17,14 +18,17 @@ const Login = () => {
     formState: { errors },
   } = useForm<FormDate>({ resolver: zodResolver(schema) });
 
+  const onSubmitData = (data: FormDate) => {
+    apiClient
+      .post("user/login", data)
+      .then((res) => console.log(res.data))
+      .catch((err) => console.log(err.response.data.message));
+  };
+
   return (
     <div className="container">
       <div className="d-flex justify-content-center">
-        <form
-          action=""
-          className="form"
-          onSubmit={handleSubmit((data) => console.log(data))}
-        >
+        <form action="" className="form" onSubmit={handleSubmit(onSubmitData)}>
           <div className="mb-3">
             <label htmlFor="email" className="form-label">
               Email :
@@ -46,7 +50,7 @@ const Login = () => {
             <input
               {...register("password")}
               id="password"
-              type="text"
+              type="password"
               className="form-control "
             />
             {errors.password && (
