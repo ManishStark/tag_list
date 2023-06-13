@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import apiClient from "../services/apiClient";
 
 const schema = z.object({
   name: z
@@ -18,10 +19,22 @@ const schema = z.object({
     .max(55, { message: "Re-Password must be less than 55 character" }),
 });
 type FormData = z.infer<typeof schema>;
-const onSubmit = (data: FormData) => {
+const onSubmit = (data: FormData, showAlert: Function) => {
   console.log(data);
+  if (data.password !== data.rePassword) {
+    return showAlert("Password and re-password did not match..", 2);
+  }
+  const newData = { ...data, rePassword: undefined };
+  apiClient
+    .post("user/signup", newData)
+    .then(() => showAlert("User Created", 1))
+    .catch((err) => showAlert(err.response.data.message, 2));
 };
-const SignUp = () => {
+
+interface Props {
+  showAlert: (message: string, code: number) => void;
+}
+const SignUp = ({ showAlert }: Props) => {
   const {
     register,
     handleSubmit,
@@ -30,7 +43,13 @@ const SignUp = () => {
   return (
     <div className="container">
       <div className="d-flex justify-content-center align-items-center">
-        <form action="" className="form" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          action=""
+          className="form"
+          onSubmit={handleSubmit((data) => {
+            onSubmit(data, showAlert);
+          })}
+        >
           <div className="mb-3">
             <label htmlFor="name" className="form-label">
               Name
@@ -42,9 +61,7 @@ const SignUp = () => {
               className="form-control"
             />
             {errors.name && (
-              <p className="text-danger border border-1">
-                {errors.name.message}
-              </p>
+              <p className="text-danger ">{errors.name.message}</p>
             )}
           </div>
           <div className="mb-3">
@@ -85,6 +102,7 @@ const SignUp = () => {
               type="password"
               className="form-control"
             />
+
             {errors.rePassword && (
               <p className="text-danger ">{errors.rePassword.message}</p>
             )}

@@ -11,7 +11,11 @@ const schema = z.object({
     .max(55, { message: "Password must be below 55 character" }),
 });
 type FormDate = z.infer<typeof schema>;
-const Login = () => {
+
+interface Props {
+  showAlert: (message: string, code: number) => void;
+}
+const Login = ({ showAlert }: Props) => {
   const {
     register,
     handleSubmit,
@@ -20,9 +24,9 @@ const Login = () => {
 
   const onSubmitData = (data: FormDate) => {
     apiClient
-      .post("user/login", data)
-      .then((res) => console.log(res.data))
-      .catch((err) => console.log(err.response.data.message));
+      .post("user/login", data, { withCredentials: true })
+      .then(() => showAlert("success", 1))
+      .catch(() => showAlert("Failed", 2));
   };
 
   return (
